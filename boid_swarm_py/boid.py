@@ -1,6 +1,5 @@
 import pygame
 import random
-import math
 
 pygame.init()
 
@@ -24,14 +23,17 @@ NEIGHBOR_RADIUS = 30
 AVOID_RADIUS = 20
 MAX_TARGETS = 20  # Maximum number of targets allowed on the map
 TARGETS = []  # Two initial targets
-SEARCH_RADIUS = 150
-HOME_TARGET = pygame.math.Vector2(30, 30)  # Home target in the center of the screen
+SEARCH_RADIUS = 100
+HOME_TARGETS = [
+    pygame.math.Vector2(30, 30),  # Top-left corner
+    pygame.math.Vector2(WIDTH - 30, 30)  # Bottom-right corner
+]
 TARGET_REACHED_RADIUS = 10  # Distance to consider a target reached
 
 # Fire parameters
 BURNING_DURATION = 60
 RANDOM_IGNITION_PROB = 0.015
-SPREAD_PROBABILITY = 0.015
+SPREAD_PROBABILITY = 0.02
 
 # Grid dimensions (scaled to screen size)
 CELL_SIZE = 10
@@ -79,7 +81,7 @@ class Boid:
         align_total = cohesion_total = separation_total = 0
 
         for boid in boids:
-            if boid == self:
+            if boid == self or boid.heading_home:
                 continue
 
             distance = self.position.distance_to(boid.position)
@@ -161,9 +163,10 @@ class Boid:
                         self.heading_home = True
 
         else:
-            target_force = self.target_behavior(HOME_TARGET)
+            closest_home = min(HOME_TARGETS, key=lambda home: self.position.distance_to(home))
+            target_force = self.target_behavior(closest_home)
 
-            if self.position.distance_to(HOME_TARGET) < TARGET_REACHED_RADIUS:
+            if self.position.distance_to(closest_home) < TARGET_REACHED_RADIUS:
                 self.heading_home = False
 
         self.velocity += (
@@ -177,23 +180,11 @@ class Boid:
             self.velocity.scale_to_length(MAX_SPEED)
         self.position += self.velocity
 
-    # def draw(self):
-    #     angle = self.velocity.angle_to(pygame.math.Vector2(1, 0))
-    #     size = 7  # Scale down the size of the boid
-    #     points = [
-    #         (self.position.x + size * math.cos(angle),
-    #          self.position.y + size * math.sin(angle)),
-    #         (self.position.x - size * 0.5 * math.cos(angle + 140),
-    #          self.position.y - size * 0.5 * math.sin(angle + 140)),
-    #         (self.position.x - size * 0.5 * math.cos(angle - 140),
-    #          self.position.y - size * 0.5 * math.sin(angle - 140)),
-    #     ]
-    #     pygame.draw.polygon(screen, BLUE, points)
     def draw(self):
         size = 5  # Radius of the circle representing the boid
         search_radius_color = (0, 0, 255, 50)  # Semi-transparent blue (alpha not used by pygame directly)
 
-        # # Draw the search radius
+        # Draw their search radius
         # pygame.draw.circle(screen, (0, 0, 255), (int(self.position.x), int(self.position.y)), SEARCH_RADIUS, 1)
 
         # Draw the boid
@@ -277,7 +268,8 @@ def main():
             boid.update(boids, grid)
             boid.draw()
 
-        pygame.draw.circle(screen, (0, 255, 0), (int(HOME_TARGET.x), int(HOME_TARGET.y)), 10)
+        for home in HOME_TARGETS:
+            pygame.draw.circle(screen, (0, 255, 0), (int(home.x), int(home.y)), 10)
 
         pygame.display.flip()
         clock.tick(60)
