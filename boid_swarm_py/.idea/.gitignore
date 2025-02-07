@@ -1,0 +1,15 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+.DS_Store
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/settings.json
+.vscode/tasks.json
+3
+boid_swarm_py/.idea/misc.xml
+boid_swarm_py/.idea/inspectionProfiles/Project_Default.xml
+boid_swarm_py/.idea/inspectionProfiles/profiles_settings.xml
+boid_swarm_py/.idea/boid_swarm_py.iml
+boid_swarm_py/.idea/.gitignore
+boid_swarm_py/.DS_Store
