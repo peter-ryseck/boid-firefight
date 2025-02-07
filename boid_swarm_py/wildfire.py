@@ -7,12 +7,11 @@ pygame.init()
 # Screen dimensions (grid size)
 GRID_WIDTH = 500  # Number of columns
 GRID_HEIGHT = 500  # Number of rows
-CELL_SIZE = 2  # Smaller pixels
+CELL_SIZE = 5  # Smaller pixels
 
 # Colors
 WHITE = (255, 255, 255)  # Not burnt
 RED = (255, 0, 0)        # Burning
-ORANGE = (255, 165, 0)   # Still burning
 BLACK = (0, 0, 0)        # Burnt
 
 # Burning duration (number of frames a cell stays burning before turning burnt)
@@ -38,6 +37,7 @@ grid = [[{"state": 0, "timer": 0} for _ in range(GRID_WIDTH)] for _ in range(GRI
 grid[GRID_HEIGHT // 2][GRID_WIDTH // 2]["state"] = 1
 grid[GRID_HEIGHT // 2][GRID_WIDTH // 2]["timer"] = BURNING_DURATION
 
+
 def draw_grid():
     """Draw the grid on the screen."""
     for row in range(GRID_HEIGHT):
@@ -46,10 +46,11 @@ def draw_grid():
             if cell["state"] == 0:  # Not burnt
                 color = WHITE
             elif cell["state"] == 1:  # Burning
-                color = RED if cell["timer"] > BURNING_DURATION // 2 else ORANGE
+                color = RED
             else:  # Burnt
                 color = BLACK
             pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+
 
 def update_grid():
     """Update the grid based on fire spread rules."""
@@ -87,9 +88,12 @@ def update_grid():
 
     grid = new_grid  # Update the grid
 
+
 def main():
     """Main loop for the simulation."""
     clock = pygame.time.Clock()
+    loop_counter = 0
+    update_frequency = 5
     running = True
 
     while running:
@@ -97,13 +101,16 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        # Update grid and draw
-        update_grid()
-        draw_grid()
+        # Increment loop counter
+        loop_counter += 1
+
+        # Update grid and draw every `update_frequency` loops
+        if loop_counter % update_frequency == 0:
+            update_grid()
+            draw_grid()
 
         # Update display
         pygame.display.flip()
-        clock.tick(10)  # Slow simulation to 10 frames per second
 
     pygame.quit()
 
