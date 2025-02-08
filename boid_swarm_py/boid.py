@@ -191,7 +191,7 @@ class Boid:
         pygame.draw.circle(screen, BLUE, (int(self.position.x), int(self.position.y)), size)
 
 
-def draw_grid():
+def draw_grid():  # display.c
     # Draw the grid on the screen
     for row in range(GRID_HEIGHT):
         for col in range(GRID_WIDTH):
@@ -207,7 +207,7 @@ def draw_grid():
             pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
 
-def update_grid():
+def update_grid():  # environment.c
     """Update the grid based on fire spread rules."""
     global grid  # Fix this
     new_grid = [[cell.copy() for cell in row] for row in grid]  # Deep copy of the grid

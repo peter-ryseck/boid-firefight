@@ -12,10 +12,12 @@
 #define BOID_H
 
 #include <assert.h>
+#include <stdbool.h>
 
 typedef struct {
     float posx, posy;
     float velx, vely;
+    bool headingHome;
 } Boid;
 
 typedef struct {
@@ -26,12 +28,16 @@ typedef struct {
 #define SEPARATION_RADIUS 12.0f
 #define ALIGNMENT_RADIUS 30.0f
 #define COHESION_RADIUS 30.0f
-#define MAX_SEPERATION_FORCE 0.02f
-#define MAX_ALIGNMENT_FORCE 0.004f
-#define MAX_COHESION_FORCE 0.004f
+#define MAX_SEPERATION_FORCE 0.03f
+#define MAX_ALIGNMENT_FORCE 0.002f
+#define MAX_COHESION_FORCE 0.002f
+#define MAX_FORCE_TARGET 0.04f
 #define MAX_WALL_FORCE 0.03f
-#define WALL_MARGIN 100
+#define WALL_MARGIN 10
 #define MAX_SPEED 1.0f
-#define MIN_SPEED 0.5f
+#define MIN_SPEED 2.0f
+#define NUM_HOME_TARGETS 2
+#define SEARCH_RADIUS 200
+#define TARGET_REACHED_RADIUS 10
 
 #endif

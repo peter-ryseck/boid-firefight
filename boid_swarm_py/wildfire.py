@@ -91,7 +91,6 @@ def update_grid():
 
 def main():
     """Main loop for the simulation."""
-    clock = pygame.time.Clock()
     loop_counter = 0
     update_frequency = 5
     running = True

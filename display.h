@@ -12,12 +12,13 @@
 #define DISPLAY_H
 
 #include <SDL.h>
-
-#define SCREEN_WIDTH 1920*0.75
-#define SCREEN_HEIGHT 1080*0.75
+#include "constants.h"
+#include "environment.h"
 
 void InitDisplay(SDL_Window **window, SDL_Renderer **renderer);
 void RenderBoids(SDL_Renderer *renderer, Boid *boids, int numBoids);
+void RenderGrid(SDL_Renderer *renderer, Grid *grid);
 void CleanupDisplay(SDL_Window *window, SDL_Renderer *renderer);
+void RenderHomeTargets(SDL_Renderer *renderer, HomeTarget *homeTargets, unsigned int numTargets);
 
-#endif
+#endif // DISPLAY_H
