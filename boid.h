@@ -37,7 +37,7 @@ typedef struct {
 #define MAX_SPEED 1.0f
 #define MIN_SPEED 2.0f
 #define NUM_HOME_TARGETS 2
-#define SEARCH_RADIUS 200
+#define SEARCH_RADIUS 150
 #define TARGET_REACHED_RADIUS 10
 
 #endif

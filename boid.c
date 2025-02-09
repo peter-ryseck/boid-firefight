@@ -148,20 +148,11 @@ static void TargetBehavior(Boid *boid, float targetX, float targetY, float maxFo
 }
 
 static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, HomeTarget* homeTargets, Grid *grid,
-            const unsigned int numSectionsX, const unsigned int numSectionsY)
+            const unsigned int numSectionsX, const unsigned int numSectionsY, float** sectionIntensity)
 {
     ComputeBehavior(boid, boids, numBoids);
 
     SteerForce targetForce = {0, 0};
-
-    // Allocate memory for sectionIntensity
-    float** sectionIntensity = (float**)malloc(numSectionsX * sizeof(float*));
-    for (unsigned int i = 0; i < numSectionsX; i++) {
-        sectionIntensity[i] = (float*)malloc(numSectionsY * sizeof(float));
-    }
-
-    // Calculate section intensities
-    CalculateSectionIntensity(sectionIntensity, grid, boids, numBoids, numSectionsX, numSectionsY);
 
     // Step 1: Find the section with the highest intensity
     float highestWeightedIntensity = -FLT_MAX;
@@ -199,12 +190,6 @@ static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, Hom
         }
     }
 
-    // Free memory for sectionIntensity
-    for (unsigned int index = 0; index < numSectionsX; index++) {
-        free(sectionIntensity[index]);
-    }
-    free(sectionIntensity);
-
     if (!boid->headingHome)
     {
         if (targetSectionX >= 0 && targetSectionY >= 0 && highestWeightedIntensity > 0)
@@ -212,7 +197,7 @@ static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, Hom
             float targetX = (targetSectionX * (GRID_WIDTH / numSectionsX) + (GRID_WIDTH / numSectionsX) / 2) * CELL_SIZE;
             float targetY = (targetSectionY * (GRID_HEIGHT / numSectionsY) + (GRID_HEIGHT / numSectionsY) / 2) * CELL_SIZE;
 
-            TargetBehavior(boid, targetX, targetY, 0.01);
+            TargetBehavior(boid, targetX, targetY, 0.02);
         }
 
         float closestDistance = SEARCH_RADIUS;
@@ -333,7 +318,10 @@ static void Edges(Boid *boid)
 int main()
 {
     srand(time(NULL));
-    const unsigned int numBoids = 1500;
+    const unsigned int numBoids = 2000;
+    const unsigned int numSectionsX = 10;
+    const unsigned int numSectionsY = 10;
+
     Boid* boids = InitializeBoids(numBoids);
 
     // Define home targets
@@ -344,6 +332,13 @@ int main()
 
     Grid grid;
     InitializeGrid(&grid);
+
+    // Allocate memory for sectionIntensity
+    float **sectionIntensity = (float **)malloc(numSectionsX * sizeof(float *));
+    for (unsigned int i = 0; i < numSectionsX; i++)
+    {
+        sectionIntensity[i] = (float *)malloc(numSectionsY * sizeof(float));
+    }
 
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
@@ -362,19 +357,28 @@ int main()
             }
         }
 
-        UpdateGrid(&grid);
+        UpdateGridAndCalculateIntensity(&grid, sectionIntensity, boids, numBoids,
+                                     numSectionsX, numSectionsY);
         RenderGrid(renderer, &grid);
         RenderHomeTargets(renderer, homeTargets, NUM_HOME_TARGETS);
         for (unsigned int index = 0; index < numBoids; index++)
         {
             Edges(&boids[index]);
-            UpdateBoid(&boids[index], boids, numBoids, homeTargets, &grid, 10, 10);
+            UpdateBoid(&boids[index], boids, numBoids, homeTargets, &grid, numSectionsX, numSectionsY, sectionIntensity);
         }
 
         RenderBoids(renderer, boids, numBoids);
     }
 
     CleanupDisplay(window, renderer);
+
+
+    // Free memory for sectionIntensity
+    for (unsigned int i = 0; i < numSectionsX; i++)
+    {
+        free(sectionIntensity[i]);
+    }
+    free(sectionIntensity);
 
     free(boids);
     

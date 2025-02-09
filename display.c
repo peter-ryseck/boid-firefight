@@ -43,36 +43,6 @@ void InitDisplay(SDL_Window **window, SDL_Renderer **renderer) {
     }
 }
 
-// void DrawArrow(SDL_Renderer *renderer, float centerX, float centerY, float angle, float length) {
-//     // Set the color for the arrow
-//     SDL_SetRenderDrawColor(renderer, 0, 100, 255, 255);
-
-//     // Arrow's line coordinates
-//     float lineEndX = centerX + length * cos(angle);
-//     float lineEndY = centerY + length * sin(angle);
-
-//     // Draw the line for the arrow
-//     SDL_RenderDrawLine(renderer, (int)centerX, (int)centerY, (int)lineEndX, (int)lineEndY);
-
-//     // Arrowhead size
-//     float arrowheadSize = 6.0f;
-
-//     // Angle for the arrowhead
-//     float arrowheadAngle1 = angle - M_PI / 6;
-//     float arrowheadAngle2 = angle + M_PI / 6;
-
-//     // Arrowhead points
-//     float headX1 = lineEndX + arrowheadSize * cos(arrowheadAngle1);
-//     float headY1 = lineEndY + arrowheadSize * sin(arrowheadAngle1);
-
-//     float headX2 = lineEndX + arrowheadSize * cos(arrowheadAngle2);
-//     float headY2 = lineEndY + arrowheadSize * sin(arrowheadAngle2);
-
-//     // Draw the arrowhead (two lines)
-//     SDL_RenderDrawLine(renderer, (int)lineEndX, (int)lineEndY, (int)headX1, (int)headY1);
-//     SDL_RenderDrawLine(renderer, (int)lineEndX, (int)lineEndY, (int)headX2, (int)headY2);
-// }
-
 void RenderHomeTargets(SDL_Renderer *renderer, HomeTarget *homeTargets, unsigned int numTargets) {
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Set the color to green
     

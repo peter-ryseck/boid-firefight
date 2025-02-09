@@ -16,9 +16,10 @@
 #include <stdlib.h>
 
 // Constants for environment behavior
-#define SPREAD_PROBABILITY 0.04f
-#define RANDOM_IGNITION_PROB 0.05f
-#define BURNING_DURATION 100
+#define SPREAD_PROBABILITY 0.07f
+#define RANDOM_IGNITION_PROB 0.03f
+#define BURNING_DURATION 50
+#define FIRE_INTENSITY_BIAS_FACTOR 10
 
 typedef struct {
     int x;  // X-coordinate of the target
@@ -41,8 +42,10 @@ typedef struct {
 extern Cell grid[GRID_HEIGHT][GRID_WIDTH];
 
 void InitializeGrid(Grid* grid);
-void UpdateGrid(Grid* grid);
-void CalculateSectionIntensity(float** sectionIntensity, Grid* grid, Boid* boids, 
-                               unsigned int numBoids, unsigned int numSectionsX, unsigned int numSectionsY);
+void UpdateGridAndCalculateIntensity(Grid* grid, float** sectionIntensity, Boid* boids, unsigned int numBoids,
+                                     unsigned int numSectionsX, unsigned int numSectionsY);
+// void UpdateGrid(Grid* grid);
+// void CalculateSectionIntensity(float** sectionIntensity, Grid* grid, Boid* boids, 
+//                                unsigned int numBoids, unsigned int numSectionsX, unsigned int numSectionsY);
 
 #endif // ENVIRONMENT_H
