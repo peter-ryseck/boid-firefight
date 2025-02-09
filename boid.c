@@ -187,6 +187,7 @@ static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, Hom
 
             // Compute the weighted intensity
             float weightedIntensity = sectionIntensity[sectionX][sectionY] * distanceWeight;
+            // float weightedIntensity = sectionIntensity[sectionX][sectionY];
 
             // Find the section with the highest weighted intensity
             if (weightedIntensity > highestWeightedIntensity)
@@ -206,12 +207,12 @@ static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, Hom
 
     if (!boid->headingHome)
     {
-        if (targetSectionX >= 0 && targetSectionY >= 0)
+        if (targetSectionX >= 0 && targetSectionY >= 0 && highestWeightedIntensity > 0)
         {
             float targetX = (targetSectionX * (GRID_WIDTH / numSectionsX) + (GRID_WIDTH / numSectionsX) / 2) * CELL_SIZE;
             float targetY = (targetSectionY * (GRID_HEIGHT / numSectionsY) + (GRID_HEIGHT / numSectionsY) / 2) * CELL_SIZE;
 
-            TargetBehavior(boid, targetX, targetY, 0.02);
+            TargetBehavior(boid, targetX, targetY, 0.01);
         }
 
         float closestDistance = SEARCH_RADIUS;
@@ -332,7 +333,7 @@ static void Edges(Boid *boid)
 int main()
 {
     srand(time(NULL));
-    const unsigned int numBoids = 1000;
+    const unsigned int numBoids = 1500;
     Boid* boids = InitializeBoids(numBoids);
 
     // Define home targets
@@ -367,7 +368,7 @@ int main()
         for (unsigned int index = 0; index < numBoids; index++)
         {
             Edges(&boids[index]);
-            UpdateBoid(&boids[index], boids, numBoids, homeTargets, &grid, 5, 5);
+            UpdateBoid(&boids[index], boids, numBoids, homeTargets, &grid, 10, 10);
         }
 
         RenderBoids(renderer, boids, numBoids);

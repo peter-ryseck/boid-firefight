@@ -16,8 +16,8 @@
 #include <stdlib.h>
 
 // Constants for environment behavior
-#define SPREAD_PROBABILITY 0.015f
-#define RANDOM_IGNITION_PROB 0.02f
+#define SPREAD_PROBABILITY 0.04f
+#define RANDOM_IGNITION_PROB 0.05f
 #define BURNING_DURATION 100
 
 typedef struct {
