@@ -12,11 +12,12 @@
 #define ENVIRONMENT_H
 
 #include "constants.h"
+#include "boid.h"
 #include <stdlib.h>
 
 // Constants for environment behavior
-#define SPREAD_PROBABILITY 0.04f
-#define RANDOM_IGNITION_PROB 0.03f
+#define SPREAD_PROBABILITY 0.015f
+#define RANDOM_IGNITION_PROB 0.02f
 #define BURNING_DURATION 100
 
 typedef struct {
@@ -41,5 +42,7 @@ extern Cell grid[GRID_HEIGHT][GRID_WIDTH];
 
 void InitializeGrid(Grid* grid);
 void UpdateGrid(Grid* grid);
+void CalculateSectionIntensity(float** sectionIntensity, Grid* grid, Boid* boids, 
+                               unsigned int numBoids, unsigned int numSectionsX, unsigned int numSectionsY);
 
 #endif // ENVIRONMENT_H

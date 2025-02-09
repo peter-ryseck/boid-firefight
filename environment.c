@@ -111,3 +111,56 @@ void UpdateGrid(Grid* grid) {
     free(newGrid->cells);
     free(newGrid);
 }
+
+void CalculateSectionIntensity(float** sectionIntensity, Grid* grid, Boid* boids, unsigned int numBoids, 
+                               unsigned int numSectionsX, unsigned int numSectionsY) 
+{
+    int sectionWidth = grid->cols / numSectionsX;
+    int sectionHeight = grid->rows / numSectionsY;
+
+    for (unsigned int sectionX = 0; sectionX < numSectionsX; sectionX++) {
+        for (unsigned int sectionY = 0; sectionY < numSectionsY; sectionY++) {
+            int startRow = sectionY * sectionHeight;
+            int endRow = (sectionY + 1) * sectionHeight - 1;
+            int startCol = sectionX * sectionWidth;
+            int endCol = (sectionX + 1) * sectionWidth - 1;
+
+            // Calculate intensity for this section
+            float intensity = 0.0f;
+            unsigned int activeBoidCount = 0;
+
+            // Count burning cells
+            for (int rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
+                for (int colIndex = startCol; colIndex <= endCol; colIndex++) {
+                    if (rowIndex >= 0 && rowIndex < grid->rows && colIndex >= 0 && colIndex < grid->cols) {
+                        Cell* cell = &grid->cells[rowIndex][colIndex];
+                        if (cell->state == 1) { // Burning state
+                            intensity += 1.0f;
+                        }
+                    }
+                }
+            }
+
+            // Count active boids in the region
+            for (unsigned int i = 0; i < numBoids; i++) {
+                Boid* boid = &boids[i];
+                if (!boid->headingHome) { // Only count boids not heading home
+                    int boidRow = (int)(boid->posy / CELL_SIZE);
+                    int boidCol = (int)(boid->posx / CELL_SIZE);
+
+                    if (boidRow >= startRow && boidRow <= endRow && boidCol >= startCol && boidCol <= endCol) {
+                        activeBoidCount++;
+                    }
+                }
+            }
+
+            // Store intensity in the section's index
+            sectionIntensity[sectionX][sectionY] = intensity;
+
+            // Ensure intensity is non-negative
+            if (sectionIntensity[sectionX][sectionY] < 0.0f) {
+                sectionIntensity[sectionX][sectionY] = 0.0f;
+            }
+        }
+    }
+}

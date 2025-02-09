@@ -147,15 +147,73 @@ static void TargetBehavior(Boid *boid, float targetX, float targetY, float maxFo
     boid->vely += steeringY;
 }
 
-static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, HomeTarget* homeTargets, Grid *grid)
+static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, HomeTarget* homeTargets, Grid *grid,
+            const unsigned int numSectionsX, const unsigned int numSectionsY)
 {
     ComputeBehavior(boid, boids, numBoids);
 
     SteerForce targetForce = {0, 0};
 
+    // Allocate memory for sectionIntensity
+    float** sectionIntensity = (float**)malloc(numSectionsX * sizeof(float*));
+    for (unsigned int i = 0; i < numSectionsX; i++) {
+        sectionIntensity[i] = (float*)malloc(numSectionsY * sizeof(float));
+    }
+
+    // Calculate section intensities
+    CalculateSectionIntensity(sectionIntensity, grid, boids, numBoids, numSectionsX, numSectionsY);
+
+    // Step 1: Find the section with the highest intensity
+    float highestWeightedIntensity = -FLT_MAX;
+    int targetSectionX = -1, targetSectionY = -1;
+
+    // Loop through each section
+    for (unsigned int sectionX = 0; sectionX < numSectionsX; sectionX++)
+    {
+        for (unsigned int sectionY = 0; sectionY < numSectionsY; sectionY++)
+        {
+            // Calculate the center of the section
+            float sectionCenterX = (sectionX + 0.5f) * (grid->cols / numSectionsX) * CELL_SIZE;
+            float sectionCenterY = (sectionY + 0.5f) * (grid->rows / numSectionsY) * CELL_SIZE;
+
+            // Calculate the distance from the boid to the section center
+            float dx = sectionCenterX - boid->posx;
+            float dy = sectionCenterY - boid->posy;
+            float distance;
+            Magnitude(&dx, &dy, &distance);
+
+            // Invert the distance to get a weighting factor (closer = higher weight)
+            float distanceWeight = (distance > 0.0f) ? (1.0f / distance) : FLT_MAX;
+
+            // Compute the weighted intensity
+            float weightedIntensity = sectionIntensity[sectionX][sectionY] * distanceWeight;
+
+            // Find the section with the highest weighted intensity
+            if (weightedIntensity > highestWeightedIntensity)
+            {
+                highestWeightedIntensity = weightedIntensity;
+                targetSectionX = sectionX;
+                targetSectionY = sectionY;
+            }
+        }
+    }
+
+    // Free memory for sectionIntensity
+    for (unsigned int index = 0; index < numSectionsX; index++) {
+        free(sectionIntensity[index]);
+    }
+    free(sectionIntensity);
+
     if (!boid->headingHome)
     {
-        // Search for the closest fire target
+        if (targetSectionX >= 0 && targetSectionY >= 0)
+        {
+            float targetX = (targetSectionX * (GRID_WIDTH / numSectionsX) + (GRID_WIDTH / numSectionsX) / 2) * CELL_SIZE;
+            float targetY = (targetSectionY * (GRID_HEIGHT / numSectionsY) + (GRID_HEIGHT / numSectionsY) / 2) * CELL_SIZE;
+
+            TargetBehavior(boid, targetX, targetY, 0.02);
+        }
+
         float closestDistance = SEARCH_RADIUS;
         float closestFireX = -1, closestFireY = -1;
 
@@ -274,7 +332,7 @@ static void Edges(Boid *boid)
 int main()
 {
     srand(time(NULL));
-    const unsigned int numBoids = 1500;
+    const unsigned int numBoids = 1000;
     Boid* boids = InitializeBoids(numBoids);
 
     // Define home targets
@@ -309,7 +367,7 @@ int main()
         for (unsigned int index = 0; index < numBoids; index++)
         {
             Edges(&boids[index]);
-            UpdateBoid(&boids[index], boids, numBoids, homeTargets, &grid);
+            UpdateBoid(&boids[index], boids, numBoids, homeTargets, &grid, 5, 5);
         }
 
         RenderBoids(renderer, boids, numBoids);
