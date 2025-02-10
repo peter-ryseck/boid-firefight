@@ -61,8 +61,8 @@ void UpdateGridAndCalculateIntensity(Grid *grid, float **sectionIntensity, Boid 
     unsigned int *boidCounts = (unsigned int *)calloc(numSectionsX * numSectionsY, sizeof(unsigned int));
 
     // Precompute boid counts for all sections
-    for (unsigned int i = 0; i < numBoids; i++) {
-        Boid *boid = &boids[i];
+    for (unsigned int index = 0; index < numBoids; index++) {
+        Boid *boid = &boids[index];
         if (!boid->headingHome) {
             unsigned int boidRow = (unsigned int)(boid->posy / CELL_SIZE);
             unsigned int boidCol = (unsigned int)(boid->posx / CELL_SIZE);
@@ -80,6 +80,10 @@ void UpdateGridAndCalculateIntensity(Grid *grid, float **sectionIntensity, Boid 
     for (unsigned int rowIndex = 0; rowIndex < grid->rows; rowIndex++) {
         for (unsigned int colIndex = 0; colIndex < grid->cols; colIndex++) {
             Cell *cell = &grid->cells[rowIndex][colIndex];
+                
+            // Update fire intensity for the corresponding section
+            unsigned int sectionX = colIndex / sectionWidth;
+            unsigned int sectionY = rowIndex / sectionHeight;
 
             if (cell->state == 1) { // Cell is burning
                 newGrid->cells[rowIndex][colIndex].timer -= 1;
@@ -101,12 +105,14 @@ void UpdateGridAndCalculateIntensity(Grid *grid, float **sectionIntensity, Boid 
                     }
                 }
 
-                // Update fire intensity for the corresponding section
-                unsigned int sectionX = colIndex / sectionWidth;
-                unsigned int sectionY = rowIndex / sectionHeight;
-
                 if (sectionX < numSectionsX && sectionY < numSectionsY) {
                     fireIntensities[sectionY * numSectionsX + sectionX] += 1.0f;
+                }
+            }
+
+            if (cell->state == 2 || cell->state == 3) { // Cell is burnt or extinguished
+                if (sectionX < numSectionsX && sectionY < numSectionsY) {
+                    fireIntensities[sectionY * numSectionsX + sectionX] -= 1.0f;
                 }
             }
         }

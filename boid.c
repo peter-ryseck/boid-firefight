@@ -318,7 +318,7 @@ static void Edges(Boid *boid)
 int main()
 {
     srand(time(NULL));
-    const unsigned int numBoids = 2000;
+    const unsigned int numBoids = 1000;
     const unsigned int numSectionsX = 10;
     const unsigned int numSectionsY = 10;
 
@@ -327,7 +327,7 @@ int main()
     // Define home targets
     HomeTarget homeTargets[NUM_HOME_TARGETS] = {
         {100, 100},
-        {650, 650},
+        {100, 700},
     };
 
     Grid grid;

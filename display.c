@@ -11,6 +11,7 @@
 #include "boid.h" // For the Boid struct
 #include "display.h"
 #include "environment.h"
+#include "utils.h"
 #include <stdio.h>
 
 void InitDisplay(SDL_Window **window, SDL_Renderer **renderer) {
@@ -81,7 +82,7 @@ void RenderGrid(SDL_Renderer *renderer, Grid *grid) {
                     color = (SDL_Color){0, 0, 0, 255}; // Black
                     break;
                 case 3: // Extinguished
-                    color = (SDL_Color){0, 0, 255, 255}; // Light Blue
+                    color = (SDL_Color){0, 100, 255, 255}; // Light Blue
                     break;
                 default:
                     color = (SDL_Color){255, 255, 255, 255}; // Default to white
@@ -119,20 +120,31 @@ void RenderGrid(SDL_Renderer *renderer, Grid *grid) {
 // }
 
 
-void DrawArrow(SDL_Renderer *renderer, float centerX, float centerY, float angle, float length) {
+void DrawArrow(SDL_Renderer *renderer, float centerX, float centerY, float angle, float length, float mag) {
     // Arrow's line coordinates
-    float lineEndX = centerX + length * cos(angle);
-    float lineEndY = centerY + length * sin(angle);
+    float lineEndX = centerX - length * cos(angle);
+    float lineEndY = centerY - length * sin(angle);
+
+    // Arrow's line coordinates
+    float lineEndXn = centerX - (length-5) * cos(angle);
+    float lineEndYn = centerY - (length-5) * sin(angle);
 
     // Draw the line for the arrow
     SDL_RenderDrawLine(renderer, (int)centerX, (int)centerY, (int)lineEndX, (int)lineEndY);
+
+    // Arrow's line coordinates
+    float lineEndX2 = centerX - length*1.3 * cos(angle);
+    float lineEndY2 = centerY - length*1.3 * sin(angle);
+
+    // Draw the line for the arrow
+    SDL_RenderDrawLine(renderer, (int)centerX, (int)centerY, (int)lineEndX2, (int)lineEndY2);
 
     // Arrowhead size
     float arrowheadSize = 6.0f;
 
     // Angle for the arrowhead
-    float arrowheadAngle1 = angle - M_PI / 6;
-    float arrowheadAngle2 = angle + M_PI / 6;
+    float arrowheadAngle1 = angle - (M_PI / 6)*1.3*(1-mag*.4);
+    float arrowheadAngle2 = angle + (M_PI / 6)*1.3*(1-mag*.4);
 
     // Arrowhead points
     float headX1 = lineEndX + arrowheadSize * cos(arrowheadAngle1);
@@ -144,6 +156,17 @@ void DrawArrow(SDL_Renderer *renderer, float centerX, float centerY, float angle
     // Draw the arrowhead (two lines)
     SDL_RenderDrawLine(renderer, (int)lineEndX, (int)lineEndY, (int)headX1, (int)headY1);
     SDL_RenderDrawLine(renderer, (int)lineEndX, (int)lineEndY, (int)headX2, (int)headY2);
+
+    // Arrowhead point
+    float headX3 = lineEndXn + arrowheadSize*.4 * cos(arrowheadAngle1);
+    float headY3 = lineEndYn + arrowheadSize*.4 * sin(arrowheadAngle1);
+
+    float headX4 = lineEndXn + arrowheadSize*.4 * cos(arrowheadAngle2);
+    float headY4 = lineEndYn + arrowheadSize*.4 * sin(arrowheadAngle2);
+
+    // Draw the arrowhead (two lines)
+    SDL_RenderDrawLine(renderer, (int)lineEndXn, (int)lineEndYn, (int)headX3, (int)headY3);
+    SDL_RenderDrawLine(renderer, (int)lineEndXn, (int)lineEndYn, (int)headX4, (int)headY4);
 }
 
 void RenderBoids(SDL_Renderer *renderer, Boid *boids, int numBoids) {
@@ -156,12 +179,15 @@ void RenderBoids(SDL_Renderer *renderer, Boid *boids, int numBoids) {
             SDL_SetRenderDrawColor(renderer, 255, 165, 0, 255);  // Dark Blue (RGB: 0, 0, 139)
         } else {
             // Default color (light blue)
-            SDL_SetRenderDrawColor(renderer, 0, 100, 255, 255);  // Light Blue
+            SDL_SetRenderDrawColor(renderer, 50, 50, 200, 255);  // Light Blue
         }
+
+        float mag;
+        Magnitude(&boids[index].velx, &boids[index].vely, &mag);
 
         // Draw each boid as an arrow based on its position and velocity
         float angle = atan2(boids[index].vely, boids[index].velx) + M_PI;
-        DrawArrow(renderer, boids[index].posx, boids[index].posy, angle, 6.0f); // Adjust arrow length as needed
+        DrawArrow(renderer, boids[index].posx, boids[index].posy, angle, 7.0f, mag); // Adjust arrow length as needed
     }
 
     // Present the rendered frame

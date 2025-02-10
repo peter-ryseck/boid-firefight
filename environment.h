@@ -19,7 +19,7 @@
 #define SPREAD_PROBABILITY 0.07f
 #define RANDOM_IGNITION_PROB 0.03f
 #define BURNING_DURATION 50
-#define FIRE_INTENSITY_BIAS_FACTOR 10
+#define FIRE_INTENSITY_BIAS_FACTOR 20
 
 typedef struct {
     int x;  // X-coordinate of the target
