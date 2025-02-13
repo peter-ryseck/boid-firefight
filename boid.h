@@ -17,7 +17,9 @@
 typedef struct {
     float posx, posy;
     float velx, vely;
+    float energy;
     bool headingHome;
+    bool headingHomeToBeRemoved;
 } Boid;
 
 typedef struct {
@@ -36,8 +38,14 @@ typedef struct {
 #define WALL_MARGIN 10
 #define MAX_SPEED 1.0f
 #define MIN_SPEED 2.0f
-#define NUM_HOME_TARGETS 2
+#define NUM_HOME_TARGETS 4
 #define SEARCH_RADIUS 150
 #define TARGET_REACHED_RADIUS 10
+#define SPAWN_FACTOR 3.0
+#define MAX_ENERGY 400
+#define MIN_ENERGY 100
+#define MIN_BOID_NUM 200
+#define MAX_BOID_NUM 1500
+#define MAX_FORCE_INTENSITY_DISTRIBUTION 0.02
 
 #endif

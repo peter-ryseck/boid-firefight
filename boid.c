@@ -31,10 +31,70 @@ static Boid* InitializeBoids(const unsigned int numBoids)
         boids[index].posy = GetRandomFloat(0, SCREEN_HEIGHT);
         boids[index].velx = GetRandomFloat(-MAX_SPEED, MAX_SPEED);
         boids[index].vely = GetRandomFloat(-MAX_SPEED, MAX_SPEED);
+        boids[index].energy = MAX_ENERGY;
+        boids[index].headingHomeToBeRemoved = false;
         boids[index].headingHome = false;
     }
 
     return boids;
+}
+
+static Boid* AddBoid(Boid* boids, unsigned int* numBoids, unsigned int locationX, unsigned int locationY) 
+{
+    // Increase the size of the boids array by 1
+    Boid* newBoids = (Boid*)realloc(boids, (*numBoids + 1) * sizeof(Boid));
+    if (newBoids == NULL)
+    {
+        return NULL; // Return NULL if memory allocation fails
+    }
+
+    // Add the new boid at the end of the array
+    newBoids[*numBoids].posx = locationX;
+    newBoids[*numBoids].posy = locationY;
+    newBoids[*numBoids].velx = GetRandomFloat(-MAX_SPEED, MAX_SPEED);
+    newBoids[*numBoids].vely = GetRandomFloat(-MAX_SPEED, MAX_SPEED);
+    newBoids[*numBoids].energy = MAX_ENERGY;
+    newBoids[*numBoids].headingHome = false;
+
+    // Increment the boid count
+    (*numBoids)++;
+
+    return newBoids; // Return the updated array
+}
+
+static Boid* RemoveBoid(Boid* boids, unsigned int* numBoids, unsigned int indexToRemove)
+{
+    if (boids[indexToRemove].headingHomeToBeRemoved == true && boids[indexToRemove].headingHome == false)
+    {
+        // Check if the index is valid
+        if (indexToRemove >= *numBoids)
+        {
+            return boids; // Return the original array if the index is invalid
+        }
+
+        // Shift all elements after the index to the left
+        for (unsigned int index = indexToRemove; index < *numBoids - 1; index++)
+        {
+            boids[index] = boids[index + 1];
+        }
+
+        // Reduce the size of the array by 1
+        Boid* newBoids = (Boid*)realloc(boids, (*numBoids - 1) * sizeof(Boid));
+        if (newBoids == NULL && *numBoids - 1 > 0)
+        {
+            // If realloc fails and the array is not empty, keep the original array
+            return boids;
+        }
+
+        // Decrement the boid count
+        (*numBoids)--;
+
+        return newBoids; // Return the updated array
+    }
+    else
+    {
+        return boids;
+    }
 }
 
 static void ApplySteering(Boid *boid, SteerForce *vectorSum, unsigned int total, float steerForce, bool normalizeFlag, bool subtractPosFlag)
@@ -125,7 +185,7 @@ static void TargetBehavior(Boid *boid, float targetX, float targetY, float maxFo
 
     // Compute magnitude of desired vector
     float magDesired;
-    Magnitude(&desiredX, &desiredY, &magDesired);
+    Magnitude(desiredX, desiredY, &magDesired);
 
     // Normalize desired vector if magnitude > 0, and scale by MAX_SPEED
     if (magDesired > 0)
@@ -147,7 +207,7 @@ static void TargetBehavior(Boid *boid, float targetX, float targetY, float maxFo
     boid->vely += steeringY;
 }
 
-static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, HomeTarget* homeTargets, Grid *grid,
+static void UpdateBoid(Boid *boid, Boid *boids, unsigned int numBoids, HomeTarget* homeTargets, Grid *grid,
             const unsigned int numSectionsX, const unsigned int numSectionsY, float** sectionIntensity)
 {
     ComputeBehavior(boid, boids, numBoids);
@@ -171,7 +231,7 @@ static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, Hom
             float dx = sectionCenterX - boid->posx;
             float dy = sectionCenterY - boid->posy;
             float distance;
-            Magnitude(&dx, &dy, &distance);
+            Magnitude(dx, dy, &distance);
 
             // Invert the distance to get a weighting factor (closer = higher weight)
             float distanceWeight = (distance > 0.0f) ? (1.0f / distance) : FLT_MAX;
@@ -190,7 +250,7 @@ static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, Hom
         }
     }
 
-    if (!boid->headingHome)
+    if (!boid->headingHome && !boid->headingHomeToBeRemoved && (boid->energy > MIN_ENERGY))
     {
         if (targetSectionX >= 0 && targetSectionY >= 0 && highestWeightedIntensity > 0)
         {
@@ -217,7 +277,7 @@ static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, Hom
                     float dx = cellCenterX - boid->posx;
                     float dy = cellCenterY - boid->posy;
                     float distance;
-                    Magnitude(&dx, &dy, &distance);
+                    Magnitude(dx, dy, &distance);
 
                     if (distance < closestDistance)
                     {
@@ -258,7 +318,7 @@ static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, Hom
             float dx = homeTargets[index].x - boid->posx;
             float dy = homeTargets[index].y - boid->posy;
             float distance;
-            Magnitude(&dx, &dy, &distance);
+            Magnitude(dx, dy, &distance);
 
             if (distance < closestDistance)
             {
@@ -273,9 +333,13 @@ static void UpdateBoid(Boid *boid, Boid *boids, const unsigned int numBoids, Hom
         if (closestDistance < TARGET_REACHED_RADIUS)
         {
             boid->headingHome = false;
+            boid->energy = MAX_ENERGY;
         }
     }
 
+    float mag;
+    Magnitude(boid->velx, boid->vely, &mag);
+    boid->energy = fmaxf(0.0f, (boid->energy - mag));
     boid->posx += boid->velx * 2.0;
     boid->posy += boid->vely * 2.0;
 }
@@ -302,7 +366,7 @@ static void Edges(Boid *boid)
     }
 
     float mag;
-    Magnitude(&edgeSum.x, &edgeSum.y, &mag);
+    Magnitude(edgeSum.x, edgeSum.y, &mag);
     if (mag > 0)
     {
         Normalize(&edgeSum.x, &edgeSum.y);
@@ -318,7 +382,7 @@ static void Edges(Boid *boid)
 int main()
 {
     srand(time(NULL));
-    const unsigned int numBoids = 1000;
+    unsigned int numBoids = MIN_BOID_NUM;
     const unsigned int numSectionsX = 10;
     const unsigned int numSectionsY = 10;
 
@@ -326,12 +390,21 @@ int main()
 
     // Define home targets
     HomeTarget homeTargets[NUM_HOME_TARGETS] = {
-        {100, 100},
-        {100, 700},
+        {200, 100},
+        {800, 100},
+        {200, 600},
+        {800, 600},
     };
 
     Grid grid;
     InitializeGrid(&grid);
+
+    float totalBurning = 0;
+
+    // Initialize spreadProbability and randomness control variables
+    float spreadProbability = MIN_SPREAD_PROBABILITY;
+    unsigned int updateFrequency = 500; // Firt 500 iterations
+    unsigned int iterationCounter = 0;
 
     // Allocate memory for sectionIntensity
     float **sectionIntensity = (float **)malloc(numSectionsX * sizeof(float *));
@@ -349,29 +422,54 @@ int main()
 
     while (isRunning)
     {
-        while (SDL_PollEvent(&event)) 
+        while (SDL_PollEvent(&event))
         {
-            if (event.type == SDL_QUIT) 
+            if (event.type == SDL_QUIT)
             {
                 isRunning = false;
             }
         }
 
+        // Adjust spreadProbability occasionally
+        if (++iterationCounter >= updateFrequency)
+        {
+            spreadProbability = GetRandomFloat(MIN_SPREAD_PROBABILITY, MAX_SPREAD_PROBABILITY);
+            updateFrequency = GetRandomFloat(MIN_SPREAD_FREQ_COUNT, MAX_SPREAD_FREQ_COUNT);
+            iterationCounter = 0;
+        }
+
+        // Add boids
+        if (totalBurning * SPAWN_FACTOR > numBoids && numBoids < MAX_BOID_NUM)
+        {
+            for (unsigned int index = 0; index < NUM_HOME_TARGETS; index++)
+            {
+                boids = AddBoid(boids, &numBoids, homeTargets[index].x, homeTargets[index].y);
+            }
+        }
+
+        // Remove boids
+        if ((numBoids > totalBurning * SPAWN_FACTOR) && (numBoids > MIN_BOID_NUM))
+        {
+            float randIndex = GetRandomFloat(0, numBoids - 1);
+            boids[(int)randIndex].headingHome = true;
+            boids[(int)randIndex].headingHomeToBeRemoved = true;
+        }
+
         UpdateGridAndCalculateIntensity(&grid, sectionIntensity, boids, numBoids,
-                                     numSectionsX, numSectionsY);
+                                        numSectionsX, numSectionsY, &totalBurning, spreadProbability);
         RenderGrid(renderer, &grid);
         RenderHomeTargets(renderer, homeTargets, NUM_HOME_TARGETS);
         for (unsigned int index = 0; index < numBoids; index++)
         {
             Edges(&boids[index]);
             UpdateBoid(&boids[index], boids, numBoids, homeTargets, &grid, numSectionsX, numSectionsY, sectionIntensity);
+            boids = RemoveBoid(boids, &numBoids, index);
         }
 
         RenderBoids(renderer, boids, numBoids);
     }
 
     CleanupDisplay(window, renderer);
-
 
     // Free memory for sectionIntensity
     for (unsigned int i = 0; i < numSectionsX; i++)
@@ -381,6 +479,6 @@ int main()
     free(sectionIntensity);
 
     free(boids);
-    
+
     return 0;
 }

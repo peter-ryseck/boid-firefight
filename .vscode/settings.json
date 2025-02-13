@@ -64,6 +64,11 @@
     "environment.h": "c",
     "constants.h": "c",
     "stdlib.h": "c",
-    "assert.h": "c"
+    "assert.h": "c",
+    "utils.h": "c",
+    "ratio": "c",
+    "ios": "c",
+    "variant": "c",
+    "chrono": "c"
   }
 }

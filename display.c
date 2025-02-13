@@ -47,14 +47,14 @@ void InitDisplay(SDL_Window **window, SDL_Renderer **renderer) {
 void RenderHomeTargets(SDL_Renderer *renderer, HomeTarget *homeTargets, unsigned int numTargets) {
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Set the color to green
     
-    for (unsigned int i = 0; i < numTargets; i++) {
-        int centerX = (int)homeTargets[i].x;
-        int centerY = (int)homeTargets[i].y;
+    for (unsigned int index = 0; index < numTargets; ++index) {
+        int centerX = (int)homeTargets[index].x;
+        int centerY = (int)homeTargets[index].y;
         int radius = 10;
 
         // Draw the circle
-        for (int w = 0; w < radius * 2; w++) {
-            for (int h = 0; h < radius * 2; h++) {
+        for (int w = 0; w < radius * 2; ++w) {
+            for (int h = 0; h < radius * 2; ++h) {
                 int dx = radius - w; // Horizontal distance from center
                 int dy = radius - h; // Vertical distance from center
                 if ((dx * dx + dy * dy) <= (radius * radius)) {
@@ -66,8 +66,8 @@ void RenderHomeTargets(SDL_Renderer *renderer, HomeTarget *homeTargets, unsigned
 }
 
 void RenderGrid(SDL_Renderer *renderer, Grid *grid) {
-    for (unsigned int rowIndex = 0; rowIndex < grid->rows; rowIndex++) {
-        for (unsigned int colIndex = 0; colIndex < grid->cols; colIndex++) {
+    for (unsigned int rowIndex = 0; rowIndex < grid->rows; ++rowIndex) {
+        for (unsigned int colIndex = 0; colIndex < grid->cols; ++colIndex) {
             Cell *cell = &grid->cells[rowIndex][colIndex];
             SDL_Color color;
 
@@ -102,23 +102,6 @@ void RenderGrid(SDL_Renderer *renderer, Grid *grid) {
         }
     }
 }
-
-// void RenderBoids(SDL_Renderer *renderer, Boid *boids, int numBoids) {
-//     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
-//     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-//     for (unsigned int index = 0; index < numBoids; index++) {
-//         // Draw each boid as a small dot based on its position
-//         float angle = atan2(boids[index].vely, boids[index].velx) + M_PI;
-        
-//         // Draw an arrow indicating the direction
-//         DrawArrow(renderer, boids[index].posx, boids[index].posy, angle, 6.0f); // Adjust arrow length as needed
-//     }
-
-//     SDL_RenderPresent(renderer);
-// }
-
 
 void DrawArrow(SDL_Renderer *renderer, float centerX, float centerY, float angle, float length, float mag) {
     // Arrow's line coordinates
@@ -170,11 +153,10 @@ void DrawArrow(SDL_Renderer *renderer, float centerX, float centerY, float angle
 }
 
 void RenderBoids(SDL_Renderer *renderer, Boid *boids, int numBoids) {
-    // Clear the screen with a black background
 
-    for (unsigned int index = 0; index < numBoids; index++) {
+    for (unsigned int index = 0; index < numBoids; ++index) {
         // Check if the boid is heading home and set the color accordingly
-        if (boids[index].headingHome) {
+        if (boids[index].headingHome && !boids[index].headingHomeToBeRemoved) {
             // Darker blue when heading home
             SDL_SetRenderDrawColor(renderer, 255, 165, 0, 255);  // Dark Blue (RGB: 0, 0, 139)
         } else {
@@ -183,7 +165,7 @@ void RenderBoids(SDL_Renderer *renderer, Boid *boids, int numBoids) {
         }
 
         float mag;
-        Magnitude(&boids[index].velx, &boids[index].vely, &mag);
+        Magnitude(boids[index].velx, boids[index].vely, &mag);
 
         // Draw each boid as an arrow based on its position and velocity
         float angle = atan2(boids[index].vely, boids[index].velx) + M_PI;

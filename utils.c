@@ -33,15 +33,15 @@ float Distance(Boid* boid1, Boid* boid2)
     return EuclideanDistance(boid1->posx, boid1->posy, boid2->posx, boid2->posy);
 }
 
-void Magnitude(float *vx, float *vy, float *mag)
+void Magnitude(float vx, float vy, float *mag)
 {
-    *mag = EuclideanDistance(0.0f, 0.0f, *vx, *vy);
+    *mag = EuclideanDistance(0.0f, 0.0f, vx, vy);
 }
 
 void LimitVector(float *vx, float *vy, float max)
 {
     float mag;
-    Magnitude(vx, vy, &mag);
+    Magnitude(*vx, *vy, &mag);
     if (mag > max && mag > 0)
     {
         *vx = (*vx / mag) * max;
@@ -52,7 +52,7 @@ void LimitVector(float *vx, float *vy, float max)
 void Normalize(float *vx, float *vy)
 {
     float len;
-    Magnitude(vx, vy, &len);
+    Magnitude(*vx, *vy, &len);
     if (len > 0) {
         *vx /= len;
         *vy /= len;
