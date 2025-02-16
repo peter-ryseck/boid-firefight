@@ -141,15 +141,6 @@ void UpdateGridAndCalculateIntensity(Grid *grid, float **sectionIntensity, Boid 
         }
     }
 
-
-    // Normalize fire intensities by section area
-    for (unsigned int sectionX = 0; sectionX < numSectionsX; ++sectionX) {
-        for (unsigned int sectionY = 0; sectionY < numSectionsY; ++sectionY) {
-            unsigned int sectionIndex = sectionY * numSectionsX + sectionX;
-            fireIntensities[sectionIndex] /= (sectionWidth * sectionHeight);
-        }
-    }
-
     // Random ignition
     if (GetRandomFloat(0.0f, 1.0f) < RANDOM_IGNITION_PROB) {
         unsigned int randomRow = (unsigned int)GetRandomFloat(5, grid->rows - 5);
@@ -171,15 +162,14 @@ void UpdateGridAndCalculateIntensity(Grid *grid, float **sectionIntensity, Boid 
         for (unsigned int sectionY = 0; sectionY < numSectionsY; ++sectionY) {
             unsigned int sectionIndex = sectionY * numSectionsX + sectionX;
 
-            float intensity = fireIntensities[sectionIndex];
             unsigned int activeBoidCount = boidCounts[sectionIndex];
 
             // Adjust intensity based on boid distribution
             if (activeBoidCount < idealBoidCount) {
-                intensity += (idealBoidCount - activeBoidCount);
+                fireIntensities[sectionIndex] += (idealBoidCount - activeBoidCount) * FIRE_INTENSITY_BIAS_FACTOR;
             }
 
-            sectionIntensity[sectionX][sectionY] = fmaxf(0.0f, intensity);  // Ensure non-negative
+            sectionIntensity[sectionX][sectionY] = fmaxf(0.0f, fireIntensities[sectionIndex]);  // Ensure non-negative
         }
     }
 

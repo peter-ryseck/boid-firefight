@@ -42,8 +42,8 @@
 #define MAX_FORCE_INTENSITY_DISTRIBUTION 0.3
 
 // Environment behavior
-#define MIN_SPREAD_PROBABILITY 0.04f
-#define MAX_SPREAD_PROBABILITY 0.04f
+#define MIN_SPREAD_PROBABILITY 0.02f
+#define MAX_SPREAD_PROBABILITY 0.06f
 #define MAX_SPREAD_FREQ_COUNT 900
 #define MIN_SPREAD_FREQ_COUNT 200
 #define RANDOM_IGNITION_PROB 0.007f // Set to zero to prevent new fires from emerging
