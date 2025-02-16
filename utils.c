@@ -1,14 +1,15 @@
 /******************************************************
  * File:           utils.c
- * Project:        Boid Swarm
+ * Project:        Boid Swarm Firefight
  * Author:         Peter Ryseck
- * Date Created:   January 20, 2025
- * Last Updated:   January 20, 2025
+ * Date Created:   February 8, 2025
+ * Last Updated:   February 8, 2025
  *
  * Description:    General utility functions
  ******************************************************/
 
 #include "boid.h"
+#include "constants.h"
 #include <stdio.h>
 #include "stdlib.h"
 #include <time.h>
@@ -38,7 +39,7 @@ void Magnitude(float vx, float vy, float *mag)
     *mag = EuclideanDistance(0.0f, 0.0f, vx, vy);
 }
 
-void LimitVector(float *vx, float *vy, float max)
+void LimitVector(float *vx, float *vy, float min, float max)
 {
     float mag;
     Magnitude(*vx, *vy, &mag);
@@ -46,6 +47,11 @@ void LimitVector(float *vx, float *vy, float max)
     {
         *vx = (*vx / mag) * max;
         *vy = (*vy / mag) * max;
+    }
+    else if (mag < min && mag > 0)
+    {
+        *vx = (*vx / mag) * min;
+        *vy = (*vy / mag) * min;
     }
 }
 

@@ -1,9 +1,9 @@
 /******************************************************
  * File:           display.c
- * Project:        Boid Swarm
+ * Project:        Boid Swarm Firefight
  * Author:         Peter Ryseck
- * Date Created:   January 20, 2025
- * Last Updated:   January 20, 2025
+ * Date Created:   February 8, 2025
+ * Last Updated:   February 8, 2025
  *
  * Description:    Display and rendering operations
  ******************************************************/
@@ -12,6 +12,7 @@
 #include "display.h"
 #include "environment.h"
 #include "utils.h"
+#include "constants.h"
 #include <stdio.h>
 
 void InitDisplay(SDL_Window **window, SDL_Renderer **renderer) {
@@ -109,8 +110,8 @@ void DrawArrow(SDL_Renderer *renderer, float centerX, float centerY, float angle
     float lineEndY = centerY - length * sin(angle);
 
     // Arrow's line coordinates
-    float lineEndXn = centerX - (length-5) * cos(angle);
-    float lineEndYn = centerY - (length-5) * sin(angle);
+    float lineEndXn = centerX - (length-7) * cos(angle);
+    float lineEndYn = centerY - (length-7) * sin(angle);
 
     // Draw the line for the arrow
     SDL_RenderDrawLine(renderer, (int)centerX, (int)centerY, (int)lineEndX, (int)lineEndY);
@@ -123,11 +124,11 @@ void DrawArrow(SDL_Renderer *renderer, float centerX, float centerY, float angle
     SDL_RenderDrawLine(renderer, (int)centerX, (int)centerY, (int)lineEndX2, (int)lineEndY2);
 
     // Arrowhead size
-    float arrowheadSize = 6.0f;
+    float arrowheadSize = 7.0f;
 
     // Angle for the arrowhead
-    float arrowheadAngle1 = angle - (M_PI / 6)*1.3*(1-mag*.4);
-    float arrowheadAngle2 = angle + (M_PI / 6)*1.3*(1-mag*.4);
+    float arrowheadAngle1 = angle - (M_PI / 6)*1.25*(1-mag*.08);
+    float arrowheadAngle2 = angle + (M_PI / 6)*1.25*(1-mag*.08);
 
     // Arrowhead points
     float headX1 = lineEndX + arrowheadSize * cos(arrowheadAngle1);
@@ -141,11 +142,11 @@ void DrawArrow(SDL_Renderer *renderer, float centerX, float centerY, float angle
     SDL_RenderDrawLine(renderer, (int)lineEndX, (int)lineEndY, (int)headX2, (int)headY2);
 
     // Arrowhead point
-    float headX3 = lineEndXn + arrowheadSize*.4 * cos(arrowheadAngle1);
-    float headY3 = lineEndYn + arrowheadSize*.4 * sin(arrowheadAngle1);
+    float headX3 = lineEndXn + arrowheadSize*.5 * cos(arrowheadAngle1);
+    float headY3 = lineEndYn + arrowheadSize*.5 * sin(arrowheadAngle1);
 
-    float headX4 = lineEndXn + arrowheadSize*.4 * cos(arrowheadAngle2);
-    float headY4 = lineEndYn + arrowheadSize*.4 * sin(arrowheadAngle2);
+    float headX4 = lineEndXn + arrowheadSize*.5 * cos(arrowheadAngle2);
+    float headY4 = lineEndYn + arrowheadSize*.5 * sin(arrowheadAngle2);
 
     // Draw the arrowhead (two lines)
     SDL_RenderDrawLine(renderer, (int)lineEndXn, (int)lineEndYn, (int)headX3, (int)headY3);
@@ -169,7 +170,7 @@ void RenderBoids(SDL_Renderer *renderer, Boid *boids, int numBoids) {
 
         // Draw each boid as an arrow based on its position and velocity
         float angle = atan2(boids[index].vely, boids[index].velx) + M_PI;
-        DrawArrow(renderer, boids[index].posx, boids[index].posy, angle, 7.0f, mag); // Adjust arrow length as needed
+        DrawArrow(renderer, boids[index].posx, boids[index].posy, angle, 10.0f, mag); // Adjust arrow length as needed
     }
 
     // Present the rendered frame

@@ -1,9 +1,9 @@
 /******************************************************
  * File:           environment.c
- * Project:        Boid Firefight
+ * Project:        Boid Swarm Firefight
  * Author:         Peter Ryseck
- * Date Created:   January 20, 2025
- * Last Updated:   January 20, 2025
+ * Date Created:   February 8, 2025
+ * Last Updated:   February 8, 2025
  *
  * Description:    Logic for wildfire spread and grid operations
  ******************************************************/
@@ -12,6 +12,7 @@
 #include "boid.h"
 #include "math.h"
 #include "utils.h"
+#include "constants.h"
 
 // Function to initialize grid
 void InitializeGrid(Grid* grid) {
@@ -77,48 +78,58 @@ void UpdateGridAndCalculateIntensity(Grid *grid, float **sectionIntensity, Boid 
         }
     }
 
-    // Update grid and calculate fire intensities
-    for (unsigned int rowIndex = 0; rowIndex < grid->rows; ++rowIndex) {
-        for (unsigned int colIndex = 0; colIndex < grid->cols; ++colIndex) {
-            Cell *cell = &grid->cells[rowIndex][colIndex];
-                
-            // Update fire intensity for the corresponding section
-            unsigned int sectionX = colIndex / sectionWidth;
-            unsigned int sectionY = rowIndex / sectionHeight;
+    for (unsigned int sectionY = 0; sectionY < numSectionsY; ++sectionY) {
+        for (unsigned int sectionX = 0; sectionX < numSectionsX; ++sectionX) {
+            unsigned int startRow = sectionY * sectionHeight;
+            unsigned int startCol = sectionX * sectionWidth;
+            unsigned int endRow = (startRow + sectionHeight < grid->rows) ? startRow + sectionHeight : grid->rows;
+            unsigned int endCol = (startCol + sectionWidth < grid->cols) ? startCol + sectionWidth : grid->cols;
+            bool hasBurningCells = false;
 
-            if (cell->state == 1) { // Cell is burning
-                newGrid->cells[rowIndex][colIndex].timer -= 1;
-                if (newGrid->cells[rowIndex][colIndex].timer <= 0) {
-                    newGrid->cells[rowIndex][colIndex].state = 2; // Change to burnt
-                }
-
-                // Spread fire to neighbors
-                int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-                for (unsigned int dirIndex = 0; dirIndex < 4; ++dirIndex) {
-                    int newRow = rowIndex + directions[dirIndex][0];
-                    int newCol = colIndex + directions[dirIndex][1];
-                    if (newRow >= 0 && newRow < grid->rows && newCol >= 0 && newCol < grid->cols) {
-                        Cell *neighbor = &grid->cells[newRow][newCol];
-                        if (neighbor->state == 0 && GetRandomFloat(0.0f, 1.0f) < spreadProbability) {
-                            newGrid->cells[newRow][newCol].state = 1;  // Change to burning
-                            newGrid->cells[newRow][newCol].timer = BURNING_DURATION;
+            for (unsigned int rowIndex = startRow; rowIndex < endRow; ++rowIndex) {
+                for (unsigned int colIndex = startCol; colIndex < endCol; ++colIndex) {
+                    Cell *cell = &grid->cells[rowIndex][colIndex];
+                    
+                    if (cell->state == 1) { // Cell is burning
+                        hasBurningCells = true;
+                        newGrid->cells[rowIndex][colIndex].timer -= 1;
+                        if (newGrid->cells[rowIndex][colIndex].timer <= 0) {
+                            newGrid->cells[rowIndex][colIndex].state = 2; // Change to burnt
                         }
+
+                        // Spread fire to neighbors
+                        int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+                        for (unsigned int dirIndex = 0; dirIndex < 4; ++dirIndex) {
+                            int newRow = rowIndex + directions[dirIndex][0];
+                            int newCol = colIndex + directions[dirIndex][1];
+                            if (newRow >= 0 && newRow < grid->rows && newCol >= 0 && newCol < grid->cols) {
+                                Cell *neighbor = &grid->cells[newRow][newCol];
+                                if (neighbor->state == 0 && GetRandomFloat(0.0f, 1.0f) < spreadProbability) {
+                                    newGrid->cells[newRow][newCol].state = 1;  // Change to burning
+                                    newGrid->cells[newRow][newCol].timer = BURNING_DURATION;
+                                }
+                            }
+                        }
+                        
+                        fireIntensities[sectionY * numSectionsX + sectionX] += 1.0f * FIRE_INTENSITY_BIAS_FACTOR;
+                        *totalBurning += 1.0f;
                     }
                 }
-
-                if (sectionX < numSectionsX && sectionY < numSectionsY) {
-                    fireIntensities[sectionY * numSectionsX + sectionX] += 1.0f;
-                    *totalBurning += 1.0f;
-                }
             }
-
-            if (cell->state == 2 || cell->state == 3) { // Cell is burnt or extinguished
-                if (sectionX < numSectionsX && sectionY < numSectionsY) {
-                    fireIntensities[sectionY * numSectionsX + sectionX] -= 1.0f;
+            
+            if (!hasBurningCells) {
+                for (unsigned int rowIndex = startRow; rowIndex < endRow; ++rowIndex) {
+                    for (unsigned int colIndex = startCol; colIndex < endCol; ++colIndex) {
+                        Cell *cell = &grid->cells[rowIndex][colIndex];
+                        if (cell->state == 2 || cell->state == 3) { // Cell is burnt or extinguished
+                            fireIntensities[sectionY * numSectionsX + sectionX] -= 1.0f * FIRE_INTENSITY_BIAS_FACTOR;
+                        }
+                    }
                 }
             }
         }
     }
+
 
     // Normalize fire intensities by section area
     for (unsigned int sectionX = 0; sectionX < numSectionsX; ++sectionX) {
@@ -149,11 +160,10 @@ void UpdateGridAndCalculateIntensity(Grid *grid, float **sectionIntensity, Boid 
         for (unsigned int sectionY = 0; sectionY < numSectionsY; ++sectionY) {
             unsigned int sectionIndex = sectionY * numSectionsX + sectionX;
 
-            float intensity = fireIntensities[sectionIndex] * FIRE_INTENSITY_BIAS_FACTOR;
+            float intensity = fireIntensities[sectionIndex];
             unsigned int activeBoidCount = boidCounts[sectionIndex];
 
             // Adjust intensity based on boid distribution
-            intensity -= activeBoidCount;
             if (activeBoidCount < idealBoidCount) {
                 intensity += (idealBoidCount - activeBoidCount);
             }

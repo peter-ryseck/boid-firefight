@@ -1,6 +1,6 @@
 /******************************************************
  * File:           environment.h
- * Project:        Boid Firefight
+ * Project:        Boid Swarm Firefight
  * Author:         Peter Ryseck
  * Date Created:   February 8, 2025
  * Last Updated:   February 8, 2025
@@ -14,15 +14,6 @@
 #include "constants.h"
 #include "boid.h"
 #include <stdlib.h>
-
-// Constants for environment behavior
-#define MIN_SPREAD_PROBABILITY 0.01f
-#define MAX_SPREAD_PROBABILITY 0.05f
-#define MAX_SPREAD_FREQ_COUNT 900
-#define MIN_SPREAD_FREQ_COUNT 200
-#define RANDOM_IGNITION_PROB 0.03f
-#define BURNING_DURATION 50
-#define FIRE_INTENSITY_BIAS_FACTOR 1000000
 
 typedef struct {
     int x;  // X-coordinate of the target
@@ -47,8 +38,5 @@ extern Cell grid[GRID_HEIGHT][GRID_WIDTH];
 void InitializeGrid(Grid* grid);
 void UpdateGridAndCalculateIntensity(Grid* grid, float** sectionIntensity, Boid* boids, unsigned int numBoids,
                                      unsigned int numSectionsX, unsigned int numSectionsY, float* totalBurning, float spreadProbability);
-// void UpdateGrid(Grid* grid);
-// void CalculateSectionIntensity(float** sectionIntensity, Grid* grid, Boid* boids, 
-//                                unsigned int numBoids, unsigned int numSectionsX, unsigned int numSectionsY);
 
 #endif // ENVIRONMENT_H

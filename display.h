@@ -1,9 +1,9 @@
 /******************************************************
  * File:           display.h
- * Project:        Boid Swarm
+ * Project:        Boid Swarm Firefight
  * Author:         Peter Ryseck
- * Date Created:   January 20, 2025
- * Last Updated:   January 20, 2025
+ * Date Created:   February 8, 2025
+ * Last Updated:   February 8, 2025
  *
  * Description:    Display and rendering operations
  ******************************************************/

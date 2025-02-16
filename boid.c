@@ -1,11 +1,11 @@
 /******************************************************
  * File:           boid.c
- * Project:        Boid Swarm
+ * Project:        Boid Swarm Firefight
  * Author:         Peter Ryseck
- * Date Created:   January 20, 2025
- * Last Updated:   January 20, 2025
+ * Date Created:   February 8, 2025
+ * Last Updated:   February 8, 2025
  *
- * Description:    Boid logic and information
+ * Description:    Boid logic
  * Compile: gcc -O3 -o boid boid.c utils.c display.c environment.c -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib -L/opt/homebrew/opt/openblas/lib -I/opt/homebrew/opt/openblas/include -lopenblas -lSDL2
  ******************************************************/
 
@@ -14,8 +14,10 @@
 #include "stdlib.h"
 #include "display.h"
 #include "environment.h"
+#include "constants.h"
 #include <math.h>
 #include <stdbool.h>
+#include "constants.h"
 
 static Boid* InitializeBoids(const unsigned int numBoids) 
 {
@@ -113,17 +115,17 @@ static void ApplySteering(Boid *boid, SteerForce *vectorSum, unsigned int total,
 
         if (normalizeFlag)
         {
-            LimitVector(&avgSteer.x, &avgSteer.y, MAX_SPEED);
+            LimitVector(&avgSteer.x, &avgSteer.y, MIN_SPEED, MAX_SPEED);
         }
 
         avgSteer.x -= boid->velx;
         avgSteer.y -= boid->vely;
 
-        LimitVector(&avgSteer.x, &avgSteer.y, steerForce);
+        LimitVector(&avgSteer.x, &avgSteer.y, 0, steerForce);
 
         boid->velx += avgSteer.x;
         boid->vely += avgSteer.y;
-        LimitVector(&boid->velx, &boid->vely, MAX_SPEED);
+        LimitVector(&boid->velx, &boid->vely, MIN_SPEED, MAX_SPEED);
     }
 }
 
@@ -200,7 +202,7 @@ static void TargetBehavior(Boid *boid, float targetX, float targetY, float maxFo
     float steeringY = desiredY - boid->vely;
 
     // Limit steering force to maxForceTarget
-    LimitVector(&steeringX, &steeringY, maxForceTarget);
+    LimitVector(&steeringX, &steeringY, 0, maxForceTarget);
 
     // Update boid's velocity with the steering force
     boid->velx += steeringX;
@@ -214,7 +216,6 @@ static void UpdateBoid(Boid *boid, Boid *boids, unsigned int numBoids, HomeTarge
 
     SteerForce targetForce = {0, 0};
 
-    // Step 1: Find the section with the highest intensity
     float highestWeightedIntensity = -FLT_MAX;
     int targetSectionX = -1, targetSectionY = -1;
 
@@ -228,17 +229,19 @@ static void UpdateBoid(Boid *boid, Boid *boids, unsigned int numBoids, HomeTarge
             float sectionCenterY = (sectionY + 0.5f) * (grid->rows / numSectionsY) * CELL_SIZE;
 
             // Calculate the distance from the boid to the section center
-            float dx = sectionCenterX - boid->posx;
-            float dy = sectionCenterY - boid->posy;
-            float distance;
-            Magnitude(dx, dy, &distance);
+            float distance = EuclideanDistance(sectionCenterX, sectionCenterY, boid->posx, boid->posy);
+
+            // Limit distance so that boids don't go straight to center of section
+            if (distance < 30)
+            {
+                distance = 30; 
+            }
 
             // Invert the distance to get a weighting factor (closer = higher weight)
             float distanceWeight = (distance > 0.0f) ? (1.0f / distance) : FLT_MAX;
 
             // Compute the weighted intensity
             float weightedIntensity = sectionIntensity[sectionX][sectionY] * distanceWeight;
-            // float weightedIntensity = sectionIntensity[sectionX][sectionY];
 
             // Find the section with the highest weighted intensity
             if (weightedIntensity > highestWeightedIntensity)
@@ -257,7 +260,7 @@ static void UpdateBoid(Boid *boid, Boid *boids, unsigned int numBoids, HomeTarge
             float targetX = (targetSectionX * (GRID_WIDTH / numSectionsX) + (GRID_WIDTH / numSectionsX) / 2) * CELL_SIZE;
             float targetY = (targetSectionY * (GRID_HEIGHT / numSectionsY) + (GRID_HEIGHT / numSectionsY) / 2) * CELL_SIZE;
 
-            TargetBehavior(boid, targetX, targetY, 0.02);
+            TargetBehavior(boid, targetX, targetY, MAX_FORCE_INTENSITY_DISTRIBUTION);
         }
 
         float closestDistance = SEARCH_RADIUS;
@@ -274,10 +277,7 @@ static void UpdateBoid(Boid *boid, Boid *boids, unsigned int numBoids, HomeTarge
                     float cellCenterX = colIndex * CELL_SIZE + CELL_SIZE / 2.0f;
                     float cellCenterY = rowIndex * CELL_SIZE + CELL_SIZE / 2.0f;
 
-                    float dx = cellCenterX - boid->posx;
-                    float dy = cellCenterY - boid->posy;
-                    float distance;
-                    Magnitude(dx, dy, &distance);
+                    float distance = EuclideanDistance(cellCenterX, cellCenterY, boid->posx, boid->posy);
 
                     if (distance < closestDistance)
                     {
@@ -315,10 +315,7 @@ static void UpdateBoid(Boid *boid, Boid *boids, unsigned int numBoids, HomeTarge
 
         for (int index = 0; index < NUM_HOME_TARGETS; index++)
         {
-            float dx = homeTargets[index].x - boid->posx;
-            float dy = homeTargets[index].y - boid->posy;
-            float distance;
-            Magnitude(dx, dy, &distance);
+            float distance = EuclideanDistance(homeTargets[index].x, homeTargets[index].y, boid->posx, boid->posy);
 
             if (distance < closestDistance)
             {
@@ -340,8 +337,8 @@ static void UpdateBoid(Boid *boid, Boid *boids, unsigned int numBoids, HomeTarge
     float mag;
     Magnitude(boid->velx, boid->vely, &mag);
     boid->energy = fmaxf(0.0f, (boid->energy - mag));
-    boid->posx += boid->velx * 2.0;
-    boid->posy += boid->vely * 2.0;
+    boid->posx += boid->velx ;
+    boid->posy += boid->vely ;
 }
 
 static void Edges(Boid *boid)
@@ -372,7 +369,7 @@ static void Edges(Boid *boid)
         Normalize(&edgeSum.x, &edgeSum.y);
         edgeSum.x = edgeSum.x * MAX_SPEED - boid->velx;
         edgeSum.y = edgeSum.y * MAX_SPEED - boid->vely;
-        LimitVector(&edgeSum.x, &edgeSum.y, MAX_WALL_FORCE);
+        LimitVector(&edgeSum.x, &edgeSum.y, 0, MAX_WALL_FORCE);
     }
     
     boid->velx += edgeSum.x;
@@ -381,19 +378,21 @@ static void Edges(Boid *boid)
 
 int main()
 {
-    srand(time(NULL));
+    srand(time(NULL));  // Random seed
+
+    // Set number of boids to start and sections of map
     unsigned int numBoids = MIN_BOID_NUM;
-    const unsigned int numSectionsX = 10;
-    const unsigned int numSectionsY = 10;
+    const unsigned int numSectionsX = 5;
+    const unsigned int numSectionsY = 5;
 
     Boid* boids = InitializeBoids(numBoids);
 
     // Define home targets
     HomeTarget homeTargets[NUM_HOME_TARGETS] = {
         {200, 100},
-        {800, 100},
-        {200, 600},
-        {800, 600},
+        {1600, 100},
+        {200, 900},
+        {1500, 600},
     };
 
     Grid grid;
@@ -403,14 +402,14 @@ int main()
 
     // Initialize spreadProbability and randomness control variables
     float spreadProbability = MIN_SPREAD_PROBABILITY;
-    unsigned int updateFrequency = 500; // Firt 500 iterations
+    unsigned int updateFrequency = MIN_SPREAD_FREQ_COUNT;
     unsigned int iterationCounter = 0;
 
     // Allocate memory for sectionIntensity
     float **sectionIntensity = (float **)malloc(numSectionsX * sizeof(float *));
-    for (unsigned int i = 0; i < numSectionsX; i++)
+    for (unsigned int index = 0; index < numSectionsX; index++)
     {
-        sectionIntensity[i] = (float *)malloc(numSectionsY * sizeof(float));
+        sectionIntensity[index] = (float *)malloc(numSectionsY * sizeof(float));
     }
 
     SDL_Window *window = NULL;
@@ -422,6 +421,8 @@ int main()
 
     while (isRunning)
     {
+        Uint32 startTime = SDL_GetTicks();  // Start timing the frame
+
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_QUIT)
@@ -438,7 +439,7 @@ int main()
             iterationCounter = 0;
         }
 
-        // Add boids
+        // Add boids if more are needed
         if (totalBurning * SPAWN_FACTOR > numBoids && numBoids < MAX_BOID_NUM)
         {
             for (unsigned int index = 0; index < NUM_HOME_TARGETS; index++)
@@ -447,7 +448,7 @@ int main()
             }
         }
 
-        // Remove boids
+        // Remove boids if less are needed
         if ((numBoids > totalBurning * SPAWN_FACTOR) && (numBoids > MIN_BOID_NUM))
         {
             float randIndex = GetRandomFloat(0, numBoids - 1);
@@ -467,14 +468,25 @@ int main()
         }
 
         RenderBoids(renderer, boids, numBoids);
+
+
+        // Measure frame time
+        Uint32 frameTime = SDL_GetTicks() - startTime;
+
+        // Cap frame rate
+        if (frameTime < CAP_FRAME_TIME)
+        {
+            SDL_Delay(CAP_FRAME_TIME - frameTime);
+        }
+
     }
 
     CleanupDisplay(window, renderer);
 
-    // Free memory for sectionIntensity
-    for (unsigned int i = 0; i < numSectionsX; i++)
+    // Free memory
+    for (unsigned int index = 0; index < numSectionsX; index++)
     {
-        free(sectionIntensity[i]);
+        free(sectionIntensity[index]);
     }
     free(sectionIntensity);
 
