@@ -376,6 +376,17 @@ static void Edges(Boid *boid)
     boid->vely += edgeSum.y;
 }
 
+// Function to handle mouse clicks and update grid
+void HandleMouseClick(Grid* grid, int mouseX, int mouseY) {
+    int col = mouseX / CELL_SIZE;
+    int row = mouseY / CELL_SIZE;
+
+    if (row >= 0 && row < grid->rows && col >= 0 && col < grid->cols) {
+        grid->cells[row][col].state = 1;  // Example: Set to burning on click
+        printf("Cell at (%d, %d) set to burning\n", row, col);
+    }
+}
+
 int main()
 {
     srand(time(NULL));  // Random seed
@@ -418,6 +429,8 @@ int main()
 
     SDL_Event event;
     bool isRunning = true;
+    bool mouseHeld = false;
+    Uint32 lastFireSpawnTime = 0; // Track last fire spawn time
 
     while (isRunning)
     {
@@ -429,6 +442,38 @@ int main()
             {
                 isRunning = false;
             }
+            else if (event.type == SDL_MOUSEBUTTONDOWN)
+            {
+                if (event.button.button == SDL_BUTTON_LEFT)
+                {
+                    mouseHeld = true;  // Mouse is held down
+                }
+            }
+            else if (event.type == SDL_MOUSEBUTTONUP)
+            {
+                if (event.button.button == SDL_BUTTON_LEFT)
+                {
+                    mouseHeld = false;  // Mouse is released
+                }
+            }
+        }
+
+        // Limit fire spawn rate to every 50ms
+        if (mouseHeld && SDL_GetTicks() - lastFireSpawnTime > 30)
+        {
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+
+            int cellX = mouseX / CELL_SIZE;
+            int cellY = mouseY / CELL_SIZE;
+
+            if (cellX >= 0 && cellX < grid.cols && cellY >= 0 && cellY < grid.rows)
+            {
+                grid.cells[cellY][cellX].state = 1;  // Set to burning
+                grid.cells[cellY][cellX].timer = BURNING_DURATION;
+            }
+
+            lastFireSpawnTime = SDL_GetTicks(); // Update last spawn time
         }
 
         // Adjust spreadProbability occasionally
@@ -469,7 +514,6 @@ int main()
 
         RenderBoids(renderer, boids, numBoids);
 
-
         // Measure frame time
         Uint32 frameTime = SDL_GetTicks() - startTime;
 
@@ -478,7 +522,6 @@ int main()
         {
             SDL_Delay(CAP_FRAME_TIME - frameTime);
         }
-
     }
 
     CleanupDisplay(window, renderer);

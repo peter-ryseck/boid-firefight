@@ -39,4 +39,9 @@ void InitializeGrid(Grid* grid);
 void UpdateGridAndCalculateIntensity(Grid* grid, float** sectionIntensity, Boid* boids, unsigned int numBoids,
                                      unsigned int numSectionsX, unsigned int numSectionsY, float* totalBurning, float spreadProbability);
 
+typedef struct {
+    unsigned int row;
+    unsigned int col;
+} FireStart;
+
 #endif // ENVIRONMENT_H

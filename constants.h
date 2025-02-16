@@ -12,7 +12,7 @@
 #define CONSTANTS_H
 
 // Display
-#define CELL_SIZE 6
+#define CELL_SIZE 6  // Size of cells used for burning, burnt, etc.
 #define SCREEN_WIDTH 1800
 #define SCREEN_HEIGHT 1020
 #define GRID_WIDTH (SCREEN_WIDTH / CELL_SIZE)
@@ -37,16 +37,16 @@
 #define SPAWN_FACTOR 3.0
 #define MAX_ENERGY 2000
 #define MIN_ENERGY 100
-#define MIN_BOID_NUM 200
+#define MIN_BOID_NUM 100
 #define MAX_BOID_NUM 1000
 #define MAX_FORCE_INTENSITY_DISTRIBUTION 0.3
 
 // Environment behavior
-#define MIN_SPREAD_PROBABILITY 0.02f
-#define MAX_SPREAD_PROBABILITY 0.08f
+#define MIN_SPREAD_PROBABILITY 0.04f
+#define MAX_SPREAD_PROBABILITY 0.04f
 #define MAX_SPREAD_FREQ_COUNT 900
 #define MIN_SPREAD_FREQ_COUNT 200
-#define RANDOM_IGNITION_PROB 0.007f
+#define RANDOM_IGNITION_PROB 0.007f // Set to zero to prevent new fires from emerging
 #define BURNING_DURATION 50
 #define FIRE_INTENSITY_BIAS_FACTOR 5000
 

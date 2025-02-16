@@ -13,15 +13,26 @@
 #include "math.h"
 #include "utils.h"
 #include "constants.h"
+#include <stdio.h>
 
-// Function to initialize grid
+// Function to initialize the grid
 void InitializeGrid(Grid* grid) {
     grid->rows = GRID_HEIGHT;
     grid->cols = GRID_WIDTH;
 
     grid->cells = (Cell**)malloc(grid->rows * sizeof(Cell*));
+    if (!grid->cells) {
+        fprintf(stderr, "Memory allocation failed for grid rows\n");
+        exit(1);
+    }
+
     for (unsigned int rowIndex = 0; rowIndex < grid->rows; ++rowIndex) {
         grid->cells[rowIndex] = (Cell*)malloc(grid->cols * sizeof(Cell));
+        if (!grid->cells[rowIndex]) {
+            fprintf(stderr, "Memory allocation failed for grid columns\n");
+            exit(1);
+        }
+
         for (unsigned int colIndex = 0; colIndex < grid->cols; ++colIndex) {
             grid->cells[rowIndex][colIndex].state = 0;  // Set to unburnt initially
             grid->cells[rowIndex][colIndex].timer = 0;
