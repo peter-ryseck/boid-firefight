@@ -133,7 +133,7 @@ void UpdateGridAndCalculateIntensity(Grid *grid, float **sectionIntensity, Boid 
                     for (unsigned int colIndex = startCol; colIndex < endCol; ++colIndex) {
                         Cell *cell = &grid->cells[rowIndex][colIndex];
                         if (cell->state == 2 || cell->state == 3) { // Cell is burnt or extinguished
-                            fireIntensities[sectionY * numSectionsX + sectionX] -= 1.0f * FIRE_INTENSITY_BIAS_FACTOR;
+                            fireIntensities[sectionY * numSectionsX + sectionX] -= 1.0f * SPREAD_INTENSITY_BIAS_FACTOR;
                         }
                     }
                 }
@@ -166,7 +166,7 @@ void UpdateGridAndCalculateIntensity(Grid *grid, float **sectionIntensity, Boid 
 
             // Adjust intensity based on boid distribution
             if (activeBoidCount < idealBoidCount) {
-                fireIntensities[sectionIndex] += (idealBoidCount - activeBoidCount) * FIRE_INTENSITY_BIAS_FACTOR;
+                fireIntensities[sectionIndex] += (idealBoidCount - activeBoidCount) * SPREAD_INTENSITY_BIAS_FACTOR;
             }
 
             sectionIntensity[sectionX][sectionY] = fmaxf(0.0f, fireIntensities[sectionIndex]);  // Ensure non-negative

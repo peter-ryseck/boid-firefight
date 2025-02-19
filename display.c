@@ -158,7 +158,7 @@ void RenderBoids(SDL_Renderer *renderer, Boid *boids, int numBoids) {
     for (unsigned int index = 0; index < numBoids; ++index) {
         // Check if the boid is heading home and set the color accordingly
         if (boids[index].headingHome && !boids[index].headingHomeToBeRemoved) {
-            SDL_SetRenderDrawColor(renderer, 100, 150, 255, 180);  // Soft light blue
+            SDL_SetRenderDrawColor(renderer, 255, 180, 100, 180);  // Soft light blue
         } else {
             SDL_SetRenderDrawColor(renderer, 50, 50, 200, 255);  // Normal blue
         }

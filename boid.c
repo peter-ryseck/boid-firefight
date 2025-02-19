@@ -232,9 +232,9 @@ static void UpdateBoid(Boid *boid, Boid *boids, unsigned int numBoids, HomeTarge
             float distance = EuclideanDistance(sectionCenterX, sectionCenterY, boid->posx, boid->posy);
 
             // Limit distance so that boids don't go straight to center of section
-            if (distance < 30)
+            if (distance < 50)
             {
-                distance = 30; 
+                distance = 50; 
             }
 
             // Invert the distance to get a weighting factor (closer = higher weight)
