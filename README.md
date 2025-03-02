@@ -76,8 +76,10 @@ The simulation uses the following constants, defined in constants.h:
 Display
 
 - **`CELL_SIZE`** – Size of individual cells representing different fire states.
-- **`SCREEN_WIDTH`** / SCREEN_HEIGHT – Dimensions of the simulation window.
-- **`GRID_WIDTH`** / GRID_HEIGHT – Number of cells in the grid.
+- **`SCREEN_WIDTH`** – Dimensions of the simulation window.
+- **`SCREEN_HEIGHT`** - Dimensions of the simulation window.
+- **`GRID_WIDTH`**  – Number of cells in the grid, don't change, calculated in compilation.
+- **`GRID_HEIGHT`**  – Number of cells in the grid veritcally, don't change, calculated in compilation.
 - **`CAP_FRAME_TIME`** – Frame time cap (set to 33 ms for ~30 FPS, 0 for unlimited FPS).
 
 Boid Behavior
