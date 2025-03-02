@@ -67,9 +67,7 @@ Each boid in the simulation follows these rules:
 
 The simulation runs in a loop, updating boid positions and rendering them in real-time.
 
-## Customization & Improvements
-
-Constants
+## Constants
 
 The simulation uses the following constants, defined in constants.h:
 
