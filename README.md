@@ -2,7 +2,7 @@
 
 Overview
 
-This project simulates a boid swarm fighting a wildfire. The simulation implements three fundamental steering behaviors:
+This project simulates a boid swarm fighting a wildfire. The simulation implements three fundamental steering behaviors, in addition to fire targeting steering:
 
 *   **Alignment:** Boids adjust their velocity to match the average direction of nearby boids.
 *   **Cohesion:** Boids move toward the center of mass of their neighbors.
