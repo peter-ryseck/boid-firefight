@@ -12,6 +12,8 @@ The wildfire grows stochastically outward, with both random spread intensity and
 
 The simulation is written in C and uses SDL2 for visualization.
 
+<img width="1770" alt="Screenshot 2025-03-02 at 12 59 58 AM" src="https://github.com/user-attachments/assets/c98d1e79-2d0c-4376-93f5-a83d9157bd9a" />
+
 ## Prerequisites
 
 Ensure you have the following installed:
